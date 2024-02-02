@@ -1,14 +1,14 @@
 
 <html lang="en" class="dark dark:bg-black">
   <head>
-    <title>Thoughts of ERC-20 in zinc</title>
+    <title>Thoughts of ERC-20 in zink</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="description" content="Empowering everyone to build reliable and efficient static site.">
 
     <!-- twitter -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Thoughts of ERC-20 in zinc">
+    <meta name="twitter:title" content="Thoughts of ERC-20 in zink">
     <meta name="twitter:image" content="https://github.com/clearloop/cydonia/releases/download/v0.0.2-pre/cydonia.svg">
     <meta name="twitter:description" content="">
     <!-- <meta name="twitter:site" content="@cydonia"> -->
@@ -30,18 +30,18 @@
     <a href="/"><span class="text-3xl bold"> clearloop </span></a>
 </nav>
      <article class="prose dark:prose-invert pt-6 max-w-5xl mx-auto">
-    <h1>Thoughts of ERC-20 in zinc</h1>
-    <p>Have been stuck in the development of zinc for around 2 months, feeling my life is worthless though these days since 
+    <h1>Thoughts of ERC-20 in zink</h1>
+    <p>Have been stuck in the development of zink for around 2 months, feeling my life is worthless though these days since 
 I haven’t done anything that I’m feeling proud of.</p>
-<p>The ERC20 implementation in zinc is a big picture which leads zinc to a real programming language of EVM when it gets
-completed, I’m too scared to see that something <strong>solidity</strong> can do but <strong>zinc</strong> can not that I could not even push one 
-more commit in zinc these days.</p>
+<p>The ERC20 implementation in zink is a big picture which leads zink to a real programming language of EVM when it gets
+completed, I’m too scared to see that something <strong>solidity</strong> can do but <strong>zink</strong> can not that I could not even push one 
+more commit in zink these days.</p>
 <h2>Splitting Problems</h2>
-<p>Another night without sleeping, tired of video games again finally, get up and check the code base of zinc, I found that
+<p>Another night without sleeping, tired of video games again finally, get up and check the code base of zink, I found that
 I have already cleaned the code structure of the code generation module last time which makes it easier to catch up my 
 previous work this time.</p>
 <p>What if I just start my work on ERC20, splitting the problems out into issues like always, the layout of <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol">ERC20</a> is 
-pretty simple, ERCs in zinc will be implemented in rust traits without doubts. </p>
+pretty simple, ERCs in zink will be implemented in rust traits without doubts. </p>
 <pre><code class="language-solidity">abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
     mapping(address account =&gt; uint256) private _balances;
     
@@ -60,7 +60,7 @@ pretty simple, ERCs in zinc will be implemented in rust traits without doubts. <
 }
 </code></pre>
 <h2>Storage</h2>
-<p>Mapping storage is missing in zinc for now bcz I haven’t got a perfect idea for passing bytes from rust to evm yet.</p>
+<p>Mapping storage is missing in zink for now bcz I haven’t got a perfect idea for passing bytes from rust to evm yet.</p>
 <pre><code class="language-solidity">mapping(address account =&gt; uint256) private _balances;
 </code></pre>
 <p>But for doing it in hard way, I have already got an idea from the design of my old friend <a href="https://github.com/paritytech/ink">ink</a>, for the <a href="https://docs.rs/ink/latest/ink/storage/struct.Mapping.html">Mapping</a>
@@ -71,7 +71,7 @@ the best solution anyway.</p>
     _marker: PhantomData&lt;fn() -&gt; (K, V, KeyType)&gt;,
 }
 </code></pre>
-<p>I was actually struggling with how to use rust’s <strong>BTreeMap</strong> in zinc before, using <strong>BTreeMap</strong> is friendly to
+<p>I was actually struggling with how to use rust’s <strong>BTreeMap</strong> in zink before, using <strong>BTreeMap</strong> is friendly to
 rust developers because we are familiar with it, however there are two big problems in it:</p>
 <ul>
 <li>The methods of <strong>BTreeMap</strong> or any <strong>Iterator</strong> requires allocation from memory which will embed tons of code
@@ -79,12 +79,12 @@ to support it.</li>
 <li>Even if we are okay with the tons of allocation code, store a encoded <strong>BtreeMap</strong> in evm takes a lot anyway,
 bcz we need to handle encoding/decoding stuffs which burns gas a lot.</li>
 </ul>
-<p>In conclusion, due to the two points above, it is very unfortunate that using Rust’s <strong>BtreeMap</strong> in zinc is not 
+<p>In conclusion, due to the two points above, it is very unfortunate that using Rust’s <strong>BtreeMap</strong> in zink is not 
 a proper solution.</p>
-<h3>Store <code>bytes</code> in zinc!</h3>
+<h3>Store <code>bytes</code> in zink!</h3>
 <p>Zinc currently only support <code>i32</code> in storage, bcz I haven’t got a solution passing bytes elegantly yet, but for moving forward
 to the goal of ERC20, I compromise to implement it anyway, the current solution requires an <code>Abi</code> trait <em>(I hate the naming <code>Abi</code>, 
-because it can describe too many interfaces in zinc xd)</em>.</p>
+because it can describe too many interfaces in zink xd)</em>.</p>
 <pre><code class="language-rust">pub trait Abi {
     fn write(&amp;self) -&gt; Result&lt;()&gt;;
 }
@@ -112,12 +112,12 @@ SSTORE
 }
 </code></pre>
 <p>I love writing macros in rust but not the generated code like above looks really ugly, but seems I have to do it now anyway.</p>
-<h3>Store maps in zinc</h3>
+<h3>Store maps in zink</h3>
 <p>I don’t like the naming <code>mapping</code> because it is too long, so if I can choose, I’ll use <code>map</code> because it is shorter, typescript is using <code>Map</code> 
 or <code>Record</code> as well, so I don’t understand why solidity is using the keyword <code>mapping</code>, mb because they have token <code>=&gt;</code> in the storage declaration,
 and they want to express <strong>ing</strong>.</p>
-<p>So for <code>Map</code> in zinc, it will follow the well-designed <code>Mapping</code> in <code>ink</code>, provided <code>Key</code>, <code>Value</code>, and <code>Prefix</code>, the problem will be concatenating
-the storage key in zinc.</p>
+<p>So for <code>Map</code> in zink, it will follow the well-designed <code>Mapping</code> in <code>ink</code>, provided <code>Key</code>, <code>Value</code>, and <code>Prefix</code>, the problem will be concatenating
+the storage key in zink.</p>
 <p>And the solution is using macro, again:</p>
 <pre><code class="language-rust">mod ffi {
   fn store_map_key_i32_value_i32(prefix: i32, key: i32, value: i32) {}
@@ -126,7 +126,7 @@ the storage key in zinc.</p>
 </code></pre>
 <p>However, we can fix <code>i32</code> as prefix this time, because the storage keys of a contract may never reach the max limit of <code>i32</code>. </p>
 <h2>Interfaces</h2>
-<p>After solving the storage problem, the next one is the design of <code>interface</code> in zinc, like mentioned above, we can use trait without doubts, but the 
+<p>After solving the storage problem, the next one is the design of <code>interface</code> in zink, like mentioned above, we can use trait without doubts, but the 
 problem is that we need to export the methods provided by traits to WASM as well, hmm, this problem leads us to a derive macro,</p>
 <pre><code class="language-rust">
 #[derive(Erc20)]
@@ -137,10 +137,10 @@ struct MyContract {}
 #[no_mangle]
 extern &quot;C&quot; fn total_supply() {}
 </code></pre>
-<p>Looks weird, but it works, should zinc ask users to use <code>MyContract</code> to define the namespace is a problem as well, maybe we can provide different 
+<p>Looks weird, but it works, should zink ask users to use <code>MyContract</code> to define the namespace is a problem as well, maybe we can provide different 
 solutions for this first, but as the experience from apple, we’d better only give users the best solution finally at this kind of points.</p>
 <h2>Errors and Events</h2>
-<p>Errors and events are about to be refactored as well since now we have a solution for passing bytes in zinc now, even it is ugly, but it is best
+<p>Errors and events are about to be refactored as well since now we have a solution for passing bytes in zink now, even it is ugly, but it is best
 solution for now ))</p>
 
 </article>
