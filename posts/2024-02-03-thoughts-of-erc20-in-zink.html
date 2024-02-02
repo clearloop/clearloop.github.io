@@ -82,7 +82,7 @@ bcz we need to handle encoding/decoding stuffs which burns gas a lot.</li>
 <p>In conclusion, due to the two points above, it is very unfortunate that using Rust’s <strong>BtreeMap</strong> in zink is not 
 a proper solution.</p>
 <h3>Store <code>bytes</code> in zink!</h3>
-<p>Zinc currently only support <code>i32</code> in storage, bcz I haven’t got a solution passing bytes elegantly yet, but for moving forward
+<p>Zink currently only support <code>i32</code> in storage, bcz I haven’t got a solution passing bytes elegantly yet, but for moving forward
 to the goal of ERC20, I compromise to implement it anyway, the current solution requires an <code>Abi</code> trait <em>(I hate the naming <code>Abi</code>, 
 because it can describe too many interfaces in zink xd)</em>.</p>
 <pre><code class="language-rust">pub trait Abi {
