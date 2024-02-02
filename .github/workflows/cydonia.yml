@@ -1,0 +1,26 @@
+name: Cydonia
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: clearloop/cydonia@0.0.7
+        with:
+          version: 0.0.8
+
+      - name: Build the site
+        run: cydonia build blog
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./blog/out
