@@ -17,10 +17,10 @@ jobs:
           version: 0.0.8
 
       - name: Build the site
-        run: cydonia build blog
+        run: cydonia build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./blog/out
+          publish_dir: ./out

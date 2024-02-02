@@ -1,26 +1,26 @@
 ---
 author: "cydonia"
-date: "2024-01-01"
+date: "2024-02-03"
 labels: ["cydonia", "rust"]
-description: "Thoughts about the storage implementation in zinc."
-title: "Thoughts of ERC-20 in zinc"
+description: "Thoughts about the storage implementation in zink."
+title: "Thoughts of ERC-20 in zink"
 ---
 
-Have been stuck in the development of zinc for around 2 months, feeling my life is worthless though these days since 
+Have been stuck in the development of zink for around 2 months, feeling my life is worthless though these days since 
 I haven't done anything that I'm feeling proud of.
 
-The ERC20 implementation in zinc is a big picture which leads zinc to a real programming language of EVM when it gets
-completed, I'm too scared to see that something **solidity** can do but **zinc** can not that I could not even push one 
-more commit in zinc these days.
+The ERC20 implementation in zink is a big picture which leads zink to a real programming language of EVM when it gets
+completed, I'm too scared to see that something **solidity** can do but **zink** can not that I could not even push one 
+more commit in zink these days.
 
 ## Splitting Problems
 
-Another night without sleeping, tired of video games again finally, get up and check the code base of zinc, I found that
+Another night without sleeping, tired of video games again finally, get up and check the code base of zink, I found that
 I have already cleaned the code structure of the code generation module last time which makes it easier to catch up my 
 previous work this time.
 
 What if I just start my work on ERC20, splitting the problems out into issues like always, the layout of [ERC20][erc20] is 
-pretty simple, ERCs in zinc will be implemented in rust traits without doubts. 
+pretty simple, ERCs in zink will be implemented in rust traits without doubts. 
 
 ```solidity
 abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
@@ -44,7 +44,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
 
 ## Storage
 
-Mapping storage is missing in zinc for now bcz I haven't got a perfect idea for passing bytes from rust to evm yet.
+Mapping storage is missing in zink for now bcz I haven't got a perfect idea for passing bytes from rust to evm yet.
 
 ```solidity
 mapping(address account => uint256) private _balances;
@@ -61,7 +61,7 @@ pub struct Mapping<K, V: Packed, KeyType: StorageKey = AutoKey> {
 }
 ```
 
-I was actually struggling with how to use rust's **BTreeMap** in zinc before, using **BTreeMap** is friendly to
+I was actually struggling with how to use rust's **BTreeMap** in zink before, using **BTreeMap** is friendly to
 rust developers because we are familiar with it, however there are two big problems in it:
 
 - The methods of **BTreeMap** or any **Iterator** requires allocation from memory which will embed tons of code
@@ -69,14 +69,14 @@ to support it.
 - Even if we are okay with the tons of allocation code, store a encoded **BtreeMap** in evm takes a lot anyway,
 bcz we need to handle encoding/decoding stuffs which burns gas a lot.
 
-In conclusion, due to the two points above, it is very unfortunate that using Rust's **BtreeMap** in zinc is not 
+In conclusion, due to the two points above, it is very unfortunate that using Rust's **BtreeMap** in zink is not 
 a proper solution.
 
-### Store `bytes` in zinc!
+### Store `bytes` in zink!
 
-Zinc currently only support `i32` in storage, bcz I haven't got a solution passing bytes elegantly yet, but for moving forward
+Zink currently only support `i32` in storage, bcz I haven't got a solution passing bytes elegantly yet, but for moving forward
 to the goal of ERC20, I compromise to implement it anyway, the current solution requires an `Abi` trait _(I hate the naming `Abi`, 
-because it can describe too many interfaces in zinc xd)_.
+because it can describe too many interfaces in zink xd)_.
 
 ```rust
 pub trait Abi {
@@ -115,14 +115,14 @@ mod ffi {
 I love writing macros in rust but not the generated code like above looks really ugly, but seems I have to do it now anyway.
 
 
-### Store maps in zinc
+### Store maps in zink
 
 I don't like the naming `mapping` because it is too long, so if I can choose, I'll use `map` because it is shorter, typescript is using `Map` 
 or `Record` as well, so I don't understand why solidity is using the keyword `mapping`, mb because they have token `=>` in the storage declaration,
 and they want to express **ing**.
 
-So for `Map` in zinc, it will follow the well-designed `Mapping` in `ink`, provided `Key`, `Value`, and `Prefix`, the problem will be concatenating
-the storage key in zinc.
+So for `Map` in zink, it will follow the well-designed `Mapping` in `ink`, provided `Key`, `Value`, and `Prefix`, the problem will be concatenating
+the storage key in zink.
 
 And the solution is using macro, again:
 
@@ -136,7 +136,7 @@ However, we can fix `i32` as prefix this time, because the storage keys of a con
 
 ## Interfaces
 
-After solving the storage problem, the next one is the design of `interface` in zinc, like mentioned above, we can use trait without doubts, but the 
+After solving the storage problem, the next one is the design of `interface` in zink, like mentioned above, we can use trait without doubts, but the 
 problem is that we need to export the methods provided by traits to WASM as well, hmm, this problem leads us to a derive macro,
 
 ```rust
@@ -150,12 +150,12 @@ struct MyContract {}
 extern "C" fn total_supply() {}
 ```
 
-Looks weird, but it works, should zinc ask users to use `MyContract` to define the namespace is a problem as well, maybe we can provide different 
+Looks weird, but it works, should zink ask users to use `MyContract` to define the namespace is a problem as well, maybe we can provide different 
 solutions for this first, but as the experience from apple, we'd better only give users the best solution finally at this kind of points.
 
 ## Errors and Events
 
-Errors and events are about to be refactored as well since now we have a solution for passing bytes in zinc now, even it is ugly, but it is best
+Errors and events are about to be refactored as well since now we have a solution for passing bytes in zink now, even it is ugly, but it is best
 solution for now ))
 
 [ink]: https://github.com/paritytech/ink
