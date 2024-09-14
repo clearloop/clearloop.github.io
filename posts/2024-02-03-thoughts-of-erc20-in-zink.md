@@ -3,7 +3,7 @@ author: "cydonia"
 date: "2024-02-03"
 labels: ["cydonia", "rust"]
 description: "Thoughts about the storage implementation in zink."
-title: "Thoughts of ERC-20 in zink"
+title: "Thoughts of ERC-20 in Zink"
 ---
 
 Have been stuck in the development of zink for around 2 months, feeling my life is worthless though these days since 
