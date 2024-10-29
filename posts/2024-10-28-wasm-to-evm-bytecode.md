@@ -3,7 +3,7 @@ author: "tianyi"
 date: "2024-10-28"
 labels: ["zink", "evm"]
 description: "How zink translate WASM to EVM bytecode"
-title: "Rust EVM contracts with zink"
+title: "Dark magics in Zink"
 ---
 
 For those who may not know, Rust is a systems programming language known for its memory safety features and performance.
@@ -14,7 +14,7 @@ So, what makes it possible to write Rust EVM smart contracts with Zink? Let's di
 
 ## 1. What is Zink?
 
-[Zink](https://github.com/zink-lang/zink) is a rustic smart contract langauge for EVM, it uses WebAssembly (WASM) as an
+[Zink](https://github.com/zink-lang/zink) is a rustic smart contract language for EVM, it uses WebAssembly (WASM) as an
 intermediate format before generating EVM bytecode.
 
 ### 1.1. Why using WASM ?
@@ -40,8 +40,8 @@ on the EVM.
 
 ## 2. Instruction Mappings
 
-As mentioned above, WASM and EVM bytecode have different ISA (see [Webassembly Opcodes][wasm-ist] and
-[EVM Opcode Opcodes Interactive Reference][evm-ist]), what we need to do first is actually mapping the 
+As mentioned above, WASM and EVM bytecode have different ISA (see [Webassembly Opcodes][wasm-set] and
+[EVM Opcode Opcodes Interactive Reference][evm-set]), what we need to do first is actually mapping the 
 shared opcodes from WASM to EVM directly, once all of the WASM opcodes can be mapped to EVM opcodes safely
 and correctly, any of WASM can be translated to EVM bytecode.
 
@@ -50,7 +50,7 @@ and correctly, any of WASM can be translated to EVM bytecode.
 | WASM Opcode Hex | WASM         | EVM          | Description                                |
 |-----------------|--------------|--------------|--------------------------------------------|
 | 0x00            | unreachable  | INVALID      | -                                          |
-| 0x01            | nop          | JUMPDEST     | JUMPDEST in EVM perfroms nop as well       |
+| 0x01            | nop          | JUMPDEST     | JUMPDEST in EVM performs nop as well       |
 | 0x02 - 0x1f     | control flow | JUMP & JUMPI | need structured instructions based on JUMP |
 
 As we can see in the control flow instruction set, some of the opcodes can be mapped to EVM opcodes in per opcode level, like
@@ -70,7 +70,7 @@ opcodes, panic occurs, however, zink provides different approaches for replacing
 see `3` for more details.
 
 
-### 2.3. Numberic operations ( 0x44 - 0xbf )
+### 2.3. Numeric operations ( 0x44 - 0xbf )
 
 WASM supports `i32` and `i64` as number types, for EVM, it's `u256`, and since EVM only has `u256` as number (bigger than `i64`),
 all WASM numbers and their operations can be perfectly mapped to EVM in per opcode level or chained instructions.
@@ -78,7 +78,7 @@ all WASM numbers and their operations can be perfectly mapped to EVM in per opco
 
 ## 3. Memory Allocator
 
-Due to EVM and WASM have different memory models, memroy operations in WASM could not be reflected to EVM, and that's why zink
+Due to EVM and WASM have different memory models, memory operations in WASM could not be reflected to EVM, and that's why zink
 bans all memory operations in rust, however, it's not that serious since reducing memory operations in EVM is also a key point
 of saving gas, see our move in the followings.
 
@@ -193,5 +193,5 @@ let addr = address();
 When zink compiler reaches the host function `evm::address`, it simply emits the EVM opcode of `address` to the contract bytecode.
 
 [select]: https://docs.zink-lang.org/compiler/control-flow.html#select
-[wasm-ist]: https://pengowray.github.io/wasm-ops/
-[evm-ist]: https://www.evm.codes/
+[wasm-set]: https://pengowray.github.io/wasm-ops/
+[evm-set]: https://www.evm.codes/
