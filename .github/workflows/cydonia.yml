@@ -12,7 +12,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: clearloop/cydonia@0.0.7
+      - uses: clearloop/omi@0.0.7
         with:
           version: 0.0.8
 
